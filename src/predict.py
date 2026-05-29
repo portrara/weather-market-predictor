@@ -50,6 +50,8 @@ def predict(
     today: date | None = None,
     seed: int = 7,
     use_llm: bool = True,
+    llm_key: str | None = None,       # per-request key (e.g. pasted in the web UI)
+    llm_provider: str | None = None,
 ) -> dict:
     today = today or date.today()
     rng = np.random.default_rng(seed)
@@ -158,6 +160,6 @@ def predict(
     # math is already complete and frozen at this point.
     if use_llm:
         from .llm.adapter import explain
-        result["commentary"] = explain(result)
+        result["commentary"] = explain(result, api_key=llm_key, provider=llm_provider)
 
     return result

@@ -25,22 +25,38 @@ PRESETS = {
 }
 
 
-def _config() -> dict | None:
-    provider = os.getenv("LLM_PROVIDER", "groq").lower()
+def _config(
+    api_key: str | None = None,
+    provider: str | None = None,
+    base_url: str | None = None,
+    model: str | None = None,
+) -> dict | None:
+    # Explicit args (e.g. a key a user pasted into the web UI for THIS request)
+    # win over environment defaults. We never write these into os.environ, so a
+    # per-session key can't leak into another visitor's session on a shared deploy.
+    provider = (provider or os.getenv("LLM_PROVIDER", "groq")).lower()
     preset = PRESETS.get(provider, PRESETS["groq"]).copy()
-    key = os.getenv("LLM_API_KEY", "").strip()
+    key = (api_key or os.getenv("LLM_API_KEY", "")).strip()
     if provider != "ollama" and not key:
         return None  # no key -> skip silently
     return {
         "provider": provider,
-        "base_url": os.getenv("LLM_BASE_URL", preset["base_url"]).rstrip("/"),
-        "model": os.getenv("LLM_MODEL", preset["model"]),
+        "base_url": (base_url or os.getenv("LLM_BASE_URL", preset["base_url"])).rstrip("/"),
+        "model": model or os.getenv("LLM_MODEL", preset["model"]),
         "key": key or "ollama",
     }
 
 
-def explain(context: dict, timeout: int = 30) -> str | None:
-    cfg = _config()
+def explain(
+    context: dict,
+    timeout: int = 30,
+    *,
+    api_key: str | None = None,
+    provider: str | None = None,
+    base_url: str | None = None,
+    model: str | None = None,
+) -> str | None:
+    cfg = _config(api_key=api_key, provider=provider, base_url=base_url, model=model)
     if cfg is None:
         return None
     prompt = (

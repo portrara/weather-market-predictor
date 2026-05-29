@@ -183,9 +183,15 @@ where your model sees > 5% edge.
 
 ## Optional LLM layer
 
-```bash
-copy .env.example .env       # then edit .env
-```
+The LLM only writes a plain-English read of the finished forecast — it never feeds
+back into the math. Three ways to give it a key:
+
+- **Web app, easiest:** just paste a key into the sidebar field. It's used only for
+  that browser session — never saved, logged, or shared.
+- **Locally (CLI or app):** `copy .env.example .env`, then set `LLM_API_KEY`.
+- **Public deploy with a server key:** set both `LLM_API_KEY` and `ENABLE_LLM=1` in
+  the host's secrets. ⚠️ Leave `ENABLE_LLM` **unset** on a public deploy unless you
+  want anonymous visitors spending your key — they can always bring their own.
 
 Set `LLM_PROVIDER` to `groq` (free tier — get a key at
 https://console.groq.com/keys), `openai`, `ollama` (local, no key), or

@@ -8,6 +8,7 @@ temperature bucket vs the live market price, with edge and Kelly stake.
 """
 from __future__ import annotations
 
+import os
 from datetime import date, timedelta
 
 import pandas as pd
@@ -18,6 +19,13 @@ from src.data.kalshi import CITY_SERIES, load_event, open_events
 from src.predict import predict
 
 load_dotenv()
+
+# The LLM layer spends YOUR API key. On a PUBLIC deploy the checkbox would let any
+# anonymous visitor drain that key, so it is OFF unless the operator opts in by
+# setting ENABLE_LLM=1 (in local .env, or Streamlit Cloud "Secrets"). Never set it
+# on a public deploy unless you accept strangers spending the key.
+ENABLE_LLM = os.getenv("ENABLE_LLM", "").strip().lower() in ("1", "true", "yes", "on")
+
 st.set_page_config(page_title="Weather Market Predictor", page_icon="🌡️", layout="wide")
 
 
@@ -36,32 +44,51 @@ st.caption("Predict daily max temperature → bucket probabilities → edge vs l
 
 # ---------------- sidebar ----------------
 with st.sidebar:
-    st.header("Market")
-    mode = st.radio("Source", ["Kalshi (live)", "Manual city + date"])
-    st.divider()
-    st.header("Model knobs")
-    station_offset = st.number_input("Station offset", value=0.0, step=0.1,
-        help="Calibrate model grid to the market's resolution station (deg).")
-    spread_inflation = st.number_input("Spread inflation", value=1.0, min_value=0.5, step=0.05,
-        help="Widen distribution for calibration. Run the backtest tab to find the right value.")
-    history_years = st.slider("History years", 10, 30, 20)
-    use_llm = st.checkbox("LLM commentary (needs API key in .env)", value=False)
+    st.header("1 · Choose a market")
+    mode = st.radio("Source", ["Kalshi (live US markets)", "Any city + date"],
+                    label_visibility="collapsed")
+
+    st.header("2 · Plain-English summary")
+    user_key = st.text_input(
+        "Paste a free API key (optional)", type="password", placeholder="gsk_…",
+        help="Get a free key in 1 minute at https://console.groq.com/keys, paste it "
+             "here, and you'll get a short written read of the forecast. The key is "
+             "used only for your session — never saved, logged, or shared. The "
+             "numbers below work perfectly fine without any key.")
+    llm_key, llm_provider, use_llm = None, None, False
+    if user_key:
+        llm_provider = st.selectbox("My key is from", ["groq", "openai", "anthropic"], index=0)
+        llm_key, use_llm = user_key, True
+        st.success("AI summary on for this session.")
+    elif ENABLE_LLM:
+        use_llm = st.checkbox("Use the server's configured key", value=False)
+    else:
+        st.caption("No key? No problem — you still get the full forecast.")
+
+    with st.expander("⚙️ Advanced settings (optional)"):
+        st.caption("Good defaults are already set — most people can leave these alone.")
+        station_offset = st.number_input("Station offset", value=0.0, step=0.1,
+            help="Nudge the model toward the market's exact resolution station (degrees).")
+        spread_inflation = st.number_input("Spread inflation", value=1.0, min_value=0.5, step=0.05,
+            help="Widen the distribution for calibration. Kalshi markets auto-calibrate this for you.")
+        history_years = st.slider("History years", 10, 30, 20)
 
 # ---------------- inputs ----------------
 kwargs, header, station_note = None, "", ""
-if mode == "Kalshi (live)":
+if mode.startswith("Kalshi"):
     labels = {f"{c} — {note}": k for k, (c, note, *_rest) in CITY_SERIES.items()}
-    pick = st.selectbox("City", list(labels))
+    pick = st.selectbox("Pick a US city", list(labels))
     series = labels[pick]
-    auto_cal = st.checkbox("Auto-calibrate spread (slow first time)", value=True)
+    auto_cal = st.checkbox("Auto-calibrate (recommended)", value=True,
+                           help="Tunes the model to this station. A little slower the first time per city.")
     try:
         events = _open_events(series)
     except Exception as e:
         events = []
         st.error(f"Couldn't reach Kalshi: {e}")
     if events:
-        event = st.selectbox("Market (event)", events)
-        if st.button("Predict", type="primary"):
+        event = st.selectbox("Pick a date / market", events)
+        if st.button("🔮 Predict", type="primary", use_container_width=True):
             ev = _load_event(event)
             header = ev["title"].replace("**", "")
             station_note = f"Resolves at {ev['station_note']} · live prices: " \
@@ -81,7 +108,8 @@ if mode == "Kalshi (live)":
                         st.warning(f"Auto-calibration unavailable ({e}); using spread = 1.0")
             kwargs = dict(target=ev["target"], buckets=ev["buckets"], units=ev["units"],
                           station=station, station_offset=station_offset,
-                          spread_inflation=spread, use_llm=use_llm)
+                          spread_inflation=spread, history_years=history_years,
+                          use_llm=use_llm, llm_key=llm_key, llm_provider=llm_provider)
     else:
         st.info("No open events for this city right now.")
 else:
@@ -89,11 +117,12 @@ else:
     city = c1.text_input("City", "Singapore")
     target = c2.date_input("Date", date.today() + timedelta(days=1))
     units = c3.selectbox("Units", ["celsius", "fahrenheit"])
-    if st.button("Predict", type="primary"):
+    if st.button("🔮 Predict", type="primary", use_container_width=True):
         header = f"{city} — {target}"
         kwargs = dict(city=city, target=target, buckets=None, units=units,
                       station_offset=station_offset, spread_inflation=spread_inflation,
-                      use_llm=use_llm)
+                      history_years=history_years, use_llm=use_llm,
+                      llm_key=llm_key, llm_provider=llm_provider)
 
 # ---------------- run + display ----------------
 if kwargs:
@@ -173,3 +202,9 @@ if kwargs:
             "to get the value that yields ~80% interval coverage, so edge isn't inflated.")
 else:
     st.info("Set up a market on the left and hit **Predict**.")
+
+st.divider()
+st.caption(
+    "⚠️ Research/educational use only — not financial advice. Trading involves risk "
+    "of loss; size positions responsibly. Kalshi trading is US-only; the market "
+    "data shown here is public.")
