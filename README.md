@@ -3,9 +3,9 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![tests](https://github.com/portrara/weather-market-predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/portrara/weather-market-predictor/actions/workflows/ci.yml)
-[![Built with Streamlit](https://img.shields.io/badge/UI-Streamlit-ff4b4b.svg)](https://streamlit.io/)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://weather-market-predictor-wzrpeh3ceosp2hqsnnilhv.streamlit.app)
 
-> **🔴 Live demo:** _coming soon_ — deploy free on [Streamlit Cloud](https://share.streamlit.io) (point it at `app.py`), then drop the link here.
+> **▶️ Live demo:** **[weather-market-predictor.streamlit.app](https://weather-market-predictor-wzrpeh3ceosp2hqsnnilhv.streamlit.app)** — try it in your browser, no install. Pick a live Kalshi market → **Predict**.
 
 Predicts the **daily maximum temperature** for a city/airport and turns it into a
 **probability for each prediction-market bucket** (e.g. Polymarket / Kalshi
