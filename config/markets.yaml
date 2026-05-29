@@ -1,0 +1,40 @@
+# Define each prediction market here, then run:  py cli.py --market singapore_2026_05_28
+#
+# CRITICAL: `station_offset` calibrates the model grid point to the EXACT source
+# the market resolves against. Read the market's resolution rules, find a few days
+# of that source's reported highs, compare to this tool's `mean`, and set the
+# average difference here. This is the biggest lever on real accuracy.
+#
+# Buckets: low is inclusive, high is exclusive (deg C). Use null for open ends.
+# `price` is the market's YES price (0..1) for that bucket; fill it in to get edge.
+#
+# `spread_inflation` widens the distribution so bucket probabilities are well
+# calibrated (not overconfident). Get the right value per location by running:
+#   py cli.py --city "<City>" --backtest
+# and copying its "Suggested spread_inflation". 1.0 = no widening.
+
+singapore_2026_05_28:
+  city: "Singapore"
+  date: "2026-05-28"
+  history_years: 20
+  station_offset: 0.0        # calibrate to the market's resolution source!
+  spread_inflation: 1.54     # from `--backtest` (gives ~80% interval coverage)
+  buckets:
+    - {label: "<= 31C",  low: null, high: 31.0,  price: null}
+    - {label: "31-32C",  low: 31.0, high: 32.0,  price: null}
+    - {label: "32-33C",  low: 32.0, high: 33.0,  price: null}
+    - {label: "33-34C",  low: 33.0, high: 34.0,  price: null}
+    - {label: "34-35C",  low: 34.0, high: 35.0,  price: null}
+    - {label: ">= 35C",  low: 35.0, high: null,  price: null}
+
+# Example with a different city + custom coords + market prices filled in:
+phoenix_example:
+  city: "Phoenix, Arizona"
+  date: "2026-07-15"
+  history_years: 25
+  station_offset: 0.5
+  buckets:
+    - {label: "<= 42C",  low: null, high: 42.0, price: 0.15}
+    - {label: "42-44C",  low: 42.0, high: 44.0, price: 0.45}
+    - {label: "44-46C",  low: 44.0, high: 46.0, price: 0.30}
+    - {label: ">= 46C",  low: 46.0, high: null, price: 0.10}

@@ -1,0 +1,12 @@
+# Requires Python 3.10+
+# Loose pins for everyday installs; see requirements.lock for the exact versions
+# this project was validated against (pip install -r requirements.lock).
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+requests>=2.31
+PyYAML>=6.0
+python-dotenv>=1.0
+meteostat>=1.6,<2
+streamlit>=1.41
+pytest>=8.0
