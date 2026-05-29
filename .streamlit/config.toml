@@ -1,0 +1,10 @@
+[theme]
+# Warm temperature-themed accent on a clean light surface.
+primaryColor = "#e8590c"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f4f6fa"
+textColor = "#16213e"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false

@@ -2,7 +2,7 @@
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-12%20passing-brightgreen.svg)](tests/test_core.py)
+[![tests](https://github.com/portrara/weather-market-predictor/actions/workflows/ci.yml/badge.svg)](https://github.com/portrara/weather-market-predictor/actions/workflows/ci.yml)
 [![Built with Streamlit](https://img.shields.io/badge/UI-Streamlit-ff4b4b.svg)](https://streamlit.io/)
 
 > **🔴 Live demo:** _coming soon_ — deploy free on [Streamlit Cloud](https://share.streamlit.io) (point it at `app.py`), then drop the link here.
